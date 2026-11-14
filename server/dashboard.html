@@ -1,0 +1,1314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team workspace · Team Contract</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&display=swap">
+<link rel="stylesheet" href="/design.css">
+<style>
+  /* Team workspace. Tokens and the floating bar come from /design.css. */
+  [hidden] { display: none !important; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  .page { width: min(1280px, 100% - 64px); margin: 0 auto; padding: 44px 0 56px; }
+  .am-bar { width: min(1280px, 100% - 64px); }
+  .am-links a[aria-current] { color: var(--am-blue-ink); font-weight: 600; }
+
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px 24px; margin-bottom: 26px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 5px 12px; border-radius: 999px;
+    background: var(--am-blue-soft); color: var(--am-blue-ink); font: 600 13px/18px var(--am-font);
+  }
+  .eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--am-blue); }
+  h1 { margin: 14px 0 0; color: var(--am-ink); font: 500 clamp(34px, 5vw, 56px)/1.05 var(--am-font); letter-spacing: -.04em; overflow-wrap: anywhere; }
+  .header-actions, .workspace-actions, .repo-actions, .git-links { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .copy-feedback { color: var(--am-quiet); font-size: 13px; }
+  .live {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: #fff;
+    border: 1px solid var(--am-line); color: var(--am-quiet); font: 600 13px/18px var(--am-font); box-shadow: var(--am-shadow-float);
+  }
+  .live .dot { width: 8px; height: 8px; background: var(--am-green); animation: pulse 2s infinite; }
+  .live.down { color: var(--am-ember); } .live.down .dot { background: var(--am-ember); animation: none; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--am-line-hi); flex: none; }
+
+  /* buttons */
+  .control, .action, footer button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 9px 18px 12px;
+    border: 1px solid var(--am-blue-line); border-radius: 12px; color: var(--am-ink); text-decoration: none;
+    background: var(--am-grad-white); box-shadow: var(--am-edge-soft); font: 600 14px/19px var(--am-font); letter-spacing: -.01em;
+    transition: transform .15s var(--am-ease), filter .15s;
+  }
+  .control:hover, .action:hover, footer button:hover { transform: translateY(-1px); filter: brightness(1.03); }
+  .control:active, .action:active { transform: translateY(1px); }
+  .control.primary, .answer-primary {
+    color: #fff; border: 0; background: var(--am-sheen), var(--am-grad-blue); box-shadow: var(--am-edge-blue-sm), var(--am-shadow-lift);
+  }
+  .action:disabled { cursor: wait; opacity: .6; }
+  .action.small { min-height: 30px; padding: 4px 12px 7px; border-radius: 10px; font-size: 12.5px; box-shadow: inset 0 -2px 0 #a9cbf5, inset 0 1px 0 #fff; }
+  .retire { color: var(--am-muted); background: #fff; border-color: var(--am-line-hi); box-shadow: none; }
+  .retire:hover, .retire:focus-visible { color: var(--am-ember); border-color: var(--am-ember-line); background: var(--am-ember-soft); }
+
+  /* project workspace card */
+  .workspace {
+    display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); align-items: center; gap: 18px 28px; margin-bottom: 18px;
+    padding: 30px 34px; border: 1px solid var(--am-line); border-radius: 28px; box-shadow: var(--am-shadow-card);
+    background: radial-gradient(60% 120% at 100% 0%, var(--am-blue-soft-2), transparent 70%), #fff;
+  }
+  .workspace h2 { margin: 0 0 6px; color: var(--am-ink); font: 500 26px/1.2 var(--am-font); letter-spacing: -.03em; }
+  .workspace p { margin: 0; max-width: 48ch; font-size: 15px; line-height: 1.6; }
+  .workspace-actions { justify-content: flex-end; }
+
+  .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0 0 22px; }
+  .metric {
+    position: relative; margin: 0; padding: 22px 24px; min-width: 0; background: #fff; border: 1px solid var(--am-line);
+    border-radius: 24px; box-shadow: var(--am-shadow-card);
+  }
+  .metric::before { content: ""; display: block; width: 10px; height: 10px; margin-bottom: 14px; border-radius: 50%; background: var(--am-blue); }
+  .metric:nth-child(2)::before { background: var(--am-ember); }
+  .metric:nth-child(3)::before { background: var(--am-codex); }
+  .metric:nth-child(4)::before { background: var(--am-claude); }
+  .metric dt { color: var(--am-quiet); font: 500 13px/18px var(--am-font); }
+  .metric dd { margin: 4px 0 0; color: var(--am-ink); font: 500 44px/1.05 var(--am-font); letter-spacing: -.04em; }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .column { display: grid; min-width: 0; gap: 20px; }
+  .panel {
+    min-width: 0; padding: 26px; overflow-wrap: anywhere; background: #fff; border: 1px solid var(--am-line);
+    border-radius: 24px; box-shadow: var(--am-shadow-card);
+  }
+  .panel > h2, h2 { margin: 0 0 14px; color: var(--am-ink); font: 600 19px/1.3 var(--am-font); letter-spacing: -.02em; }
+  h2 .count { margin-left: 8px; padding: 2px 9px; border-radius: 999px; background: var(--am-blue-soft); color: var(--am-blue-ink); font-size: 12px; font-weight: 600; vertical-align: 2px; }
+  #conflicts, #requests { border-color: var(--am-ember-line); background: linear-gradient(180deg, #fffaf7, #fff 60%); }
+  #conflicts h2 { color: #9b3a12; }
+  .meta { margin-top: 2px; color: var(--am-quiet); font-size: 13px; font-weight: 400; line-height: 1.5; }
+  .hint { margin: 8px 0 0; color: var(--am-quiet); font-size: 13px; }
+  .empty { padding: 14px 4px; color: var(--am-muted); font-size: 14px; }
+
+  /* rows are soft inset cards, as in the product windows */
+  .decision, .file-row, .git-row, .event, .retired-row {
+    margin-bottom: 10px; padding: 14px 16px; background: var(--am-inset); border-radius: 16px;
+  }
+  .decision:last-child, .file-row:last-child, .git-row:last-child, .event:last-child { margin-bottom: 0; }
+  .decision { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+  .decision .what { color: var(--am-ink); font-size: 15px; font-weight: 500; line-height: 1.45; overflow-wrap: anywhere; }
+  .tag {
+    justify-self: start; padding: 3px 11px 4px; border-radius: 999px; font: 600 12px/16px var(--am-font); text-align: center;
+    background: var(--am-blue-soft); color: var(--am-blue-ink);
+  }
+  .tag.api { background: var(--am-purple-soft); color: #5a3de8; }
+  .tag.data { background: var(--am-green-soft); color: var(--am-green-ink); }
+  .tag.convention { background: var(--am-amber-soft); color: var(--am-amber-ink); }
+  .tag.other { background: #eef1f6; color: var(--am-quiet); }
+  .event { font-size: 14px; color: var(--am-ink); overflow-wrap: anywhere; }
+  .event b { font-weight: 600; }
+  .event.bad { color: #9b3a12; background: var(--am-ember-soft); }
+  .file-row code, .check-finding code, .git-row code { color: var(--am-ink); font-size: 13px; }
+  .file-row strong { color: var(--am-ink); font-weight: 600; }
+  .file-overlap { margin-left: 8px; padding: 2px 9px; border-radius: 999px; background: var(--am-amber-soft); color: var(--am-amber-ink); font: 600 11.5px/16px var(--am-font); white-space: nowrap; }
+  .who-line { display: flex; align-items: center; gap: 8px; margin-top: 8px; color: var(--am-quiet); font-size: 13px; flex-wrap: wrap; }
+  .who-line + .who-line { margin-top: 6px; }
+  .who-line .am-avatar { width: 22px; height: 22px; font-size: 10px; }
+  .who-line code { background: #fff; border: 1px solid var(--am-line); border-radius: 8px; padding: 1px 8px; }
+
+  /* setup checklist */
+  .checklist { margin-bottom: 18px; padding: 26px 30px; background: #fff; border: 1px solid var(--am-blue-line); border-radius: 28px; box-shadow: var(--am-shadow-card); }
+  .checklist-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .checklist-head h2 { margin: 0 0 2px; }
+  .progress { height: 8px; margin: 14px 0 18px; background: var(--am-blue-soft); border-radius: 999px; overflow: hidden; }
+  .progress span { display: block; height: 100%; width: 0; background: var(--am-grad-blue); border-radius: inherit; transition: width .4s var(--am-ease); }
+  #checklist-steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  #checklist-steps li { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 14px; background: var(--am-inset); border-radius: 16px; }
+  #checklist-steps li.next { background: var(--am-blue-soft); }
+  #checklist-steps strong { color: var(--am-ink); font-weight: 600; }
+  #checklist-steps .hint { margin: 2px 0 0; }
+  .tick { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: #fff; border: 1px solid var(--am-line-hi); color: var(--am-quiet); font-weight: 700; }
+  li.done .tick { background: var(--am-green-soft); border-color: #c5ead4; color: var(--am-green-ink); }
+  li.done strong { color: var(--am-quiet); }
+  li.next .tick { background: var(--am-grad-blue); border: 0; color: #fff; }
+
+  /* team chat */
+  #messages { display: grid; gap: 8px; max-height: 340px; overflow-y: auto; margin: 12px 0; padding-right: 2px; }
+  .msg { padding: 12px 14px; background: var(--am-inset); border-radius: 16px; }
+  .msg .who-line { margin-top: 0; }
+  .msg .who-line strong { color: var(--am-ink); font-weight: 600; }
+  .msg-text { margin-top: 6px; color: var(--am-ink); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+  .chat-form { display: grid; grid-template-columns: minmax(0, 110px) minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .chat-form input { min-width: 0; padding: 10px 14px; color: var(--am-ink); background: var(--am-inset); border: 1px solid var(--am-line-hi); border-radius: 12px; font: 400 14px/1.4 var(--am-font); }
+  .chat-form input:focus { outline: 3px solid #cfe0ff; border-color: var(--am-blue); background: #fff; }
+
+  /* requests between agents */
+  .ask-form { display: grid; gap: 10px; }
+  .ask-row { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr) minmax(0, 1.1fr); gap: 8px; }
+  .ask-form input, .ask-form select, .ask-form textarea {
+    width: 100%; min-width: 0; padding: 10px 12px; color: var(--am-ink); background: var(--am-inset);
+    border: 1px solid var(--am-line-hi); border-radius: 12px; font: 400 14px/1.45 var(--am-font);
+  }
+  .ask-form textarea { resize: vertical; }
+  .ask-form input:focus, .ask-form select:focus, .ask-form textarea:focus { outline: 3px solid #cfe0ff; border-color: var(--am-blue); background: #fff; }
+  .ask-form .control { justify-self: start; }
+  #asks { display: grid; gap: 8px; max-height: 420px; overflow-y: auto; margin: 12px 0; }
+  .ask-result { margin-top: 8px; padding: 10px 12px; background: #fff; border: 1px solid var(--am-line); border-radius: 12px; color: var(--am-ink); font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; }
+  .ask-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .am-chip.ember { background: var(--am-ember-soft); border-color: var(--am-ember-line); color: var(--am-ember); }
+
+  /* conflicts */
+  .conflict { margin-bottom: 12px; padding: 18px; background: #fff; border: 1px solid var(--am-ember-line); border-radius: 20px; }
+  .conflict:last-child { margin-bottom: 0; }
+  .conflict .top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .conflict .badge { padding: 3px 11px; border-radius: 999px; background: var(--am-ember-soft); border: 1px solid var(--am-ember-line); color: var(--am-ember); font: 700 11px/16px var(--am-font); letter-spacing: .04em; }
+  .conflict .why { margin: 0 0 14px; color: var(--am-ink); font: 600 17px/1.4 var(--am-font); letter-spacing: -.01em; }
+  .sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .side { display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--am-inset); border-radius: 16px; }
+  .side .who { color: var(--am-muted); font: 600 12px/16px var(--am-font); }
+  .side .what { color: var(--am-ink); font-size: 15px; font-weight: 500; }
+  .side .action { align-self: flex-start; margin-top: auto; }
+
+  /* decision requests */
+  .request-card { padding: 16px 0; border-top: 1px solid var(--am-line); overflow-wrap: anywhere; }
+  .request-card:first-child { border-top: 0; padding-top: 0; }
+  .request-card h3 { margin: 0 0 4px; color: var(--am-ink); font: 600 16px/1.4 var(--am-font); }
+  .request-card p { margin: 6px 0; }
+  .request-card .answered { color: var(--am-green-ink); font-weight: 600; }
+
+  /* github */
+  #git-repository { margin: 0 0 12px; overflow-wrap: anywhere; font-size: 14px; }
+  #git-panel a:not(.control) { color: var(--am-blue-ink); font-weight: 600; }
+  .repo-actions { margin: 0 0 14px; }
+  .git-row { display: grid; gap: 6px; }
+  .git-row > div:first-child { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: var(--am-ink); }
+  .git-links { gap: 14px; font-size: 13px; }
+  .git-row strong { font-weight: 600; font-size: 15px; }
+  .edit-summary { margin: 4px 0 2px 30px; color: var(--am-body); font-size: 13px; }
+  .git-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; background: var(--am-blue-soft); color: var(--am-blue-ink); font: 600 11.5px/16px var(--am-font); }
+  .git-pill.approved { background: var(--am-green-soft); color: var(--am-green-ink); }
+  .git-pill.changes_requested { background: var(--am-amber-soft); color: var(--am-amber-ink); }
+  .check-finding { margin: 4px 0; padding: 4px 0 4px 12px; border-left: 3px solid var(--am-amber-line); color: var(--am-ink); font-size: 14px; }
+
+  /* teammates */
+  .people { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+  .person { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 6px; background: #fff; border: 1px solid var(--am-line); border-radius: 999px; color: var(--am-ink); font: 600 14px/20px var(--am-font); }
+  .person small { color: var(--am-muted); font-weight: 400; font-size: 12px; }
+  .person .dot { display: none; }
+  .person.active { border-color: #c5ead4; background: #fbfffc; }
+  .person.active small { color: var(--am-green-ink); font-weight: 600; }
+
+  details.retired { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--am-line); }
+  details.retired summary { cursor: pointer; color: var(--am-quiet); font-size: 14px; }
+  .retired-row { margin-top: 10px; font-size: 14px; }
+  .retired-row s { color: var(--am-muted); }
+
+  /* footer status row */
+  footer { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--am-line); color: var(--am-quiet); font-size: 13px; }
+  footer .warn { padding: 3px 12px; border-radius: 999px; background: var(--am-amber-soft); color: var(--am-amber-ink); font-weight: 600; }
+  footer #checker:not(.warn), footer #key-status { padding: 3px 12px; border-radius: 999px; background: #fff; border: 1px solid var(--am-line); }
+  footer button { min-height: 34px; padding: 6px 14px 9px; font-size: 13px; }
+  footer #set-key { margin-left: auto; }
+  footer #reset { color: var(--am-quiet); background: #fff; border-color: var(--am-line-hi); box-shadow: none; }
+  footer #reset:hover { color: var(--am-ember); border-color: var(--am-ember-line); background: var(--am-ember-soft); }
+  footer #set-key[hidden] + #reset { margin-left: auto; }
+
+  /* dialogs */
+  dialog { width: min(520px, calc(100% - 32px)); padding: 30px; color: var(--am-ink); background: #fff; border: 1px solid var(--am-line); border-radius: 28px; box-shadow: var(--am-shadow-window); }
+  dialog::backdrop { background: rgb(8 24 60 / .38); backdrop-filter: blur(5px); }
+  dialog h2 { margin: 0 0 10px; font: 500 26px/1.2 var(--am-font); letter-spacing: -.035em; }
+  dialog p.meta { margin: 0 0 6px; font-size: 14px; overflow-wrap: anywhere; }
+  dialog label { display: block; margin: 14px 0; color: var(--am-ink); font: 600 13px/18px var(--am-font); }
+  dialog input, dialog textarea {
+    display: block; width: 100%; margin-top: 7px; padding: 12px 14px; color: var(--am-ink); background: var(--am-inset);
+    border: 1px solid var(--am-line-hi); border-radius: 14px; font: 400 15px/1.5 var(--am-font);
+  }
+  dialog input:focus, dialog textarea:focus { outline: 3px solid #cfe0ff; border-color: var(--am-blue); background: #fff; }
+  .answer-options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .answer-options button { max-width: 100%; overflow-wrap: anywhere; text-align: left; }
+  .dialog-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .form-error { color: var(--am-ember); font-size: 14px; }
+  #terminal-dialog { width: min(680px, calc(100% - 28px)); max-height: calc(100dvh - 28px); }
+  .terminal-steps { display: grid; gap: 16px; margin: 18px 0; padding-left: 22px; }
+  .terminal-steps li { padding-left: 4px; overflow-wrap: anywhere; font-size: 15px; }
+  .terminal-steps strong { color: var(--am-ink); font-weight: 600; }
+  .terminal-steps .hint { margin: 2px 0 8px; }
+  .terminal-steps a { color: var(--am-blue-ink); font-weight: 600; }
+  .command-box {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px 12px 12px 16px;
+    background: linear-gradient(180deg, #151e2e, #0b1220); border-radius: 16px; color: #dbe7ff;
+  }
+  .command-box code { color: #dbe7ff; font-size: 12.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .terminal-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+  .fresh { animation: fresh 5s ease-out; }
+  @keyframes fresh { 0%, 40% { background: var(--am-blue-soft); } 100% { background: var(--am-inset); } }
+  .conflict.fresh { animation: shake .5s ease-in-out; }
+  @keyframes shake { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+  @media (prefers-reduced-motion: reduce) { .fresh, .conflict.fresh, .live .dot { animation: none; } .control, .action { transition: none; } }
+
+  @media (max-width: 960px) {
+    .grid, .workspace { grid-template-columns: minmax(0, 1fr); }
+    .workspace-actions { justify-content: flex-start; }
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .ask-row, .chat-form { grid-template-columns: minmax(0, 1fr); }
+    #checklist-steps li { grid-template-columns: 34px minmax(0, 1fr); }
+    #checklist-steps li > button { grid-column: 2; justify-self: start; }
+    .checklist { padding: 20px; }
+    .page, .am-bar { width: calc(100% - 28px); }
+    .page { padding-top: 28px; }
+    .panel, .workspace { padding: 20px; }
+    .sides { grid-template-columns: minmax(0, 1fr); }
+    .decision { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .decision .retire { justify-self: start; }
+    .metric { padding: 18px; } .metric dd { font-size: 36px; }
+    .column { display: contents; }
+    dialog { padding: 22px; }
+  }
+</style>
+</head>
+<body>
+<nav class="am-bar" aria-label="Room navigation">
+  <a class="am-logo" href="/"><span class="am-mark" aria-hidden="true">TC</span>team contract</a>
+  <div class="am-links">
+    <a href="#overview" aria-current="location">overview</a>
+    <a href="#claim-panel">claims</a>
+    <a href="#chat-panel">chat</a>
+    <a href="#ask-panel">requests</a>
+    <a href="#git-panel">github</a>
+    <a href="#contract">decisions</a>
+    <a href="#file-panel">edits</a>
+  </div>
+  <div class="am-bar-end"><a class="am-btn sm soft" href="/#setup">add a teammate</a></div>
+</nav>
+<main class="page" id="overview">
+  <header>
+    <div><p class="eyebrow">Your room</p><h1 id="room"></h1></div>
+    <div class="header-actions">
+      <span class="live" id="live"><span class="dot"></span><span id="live-text">Connecting</span></span>
+      <button type="button" class="control primary" id="copy-invite">Copy invite</button>
+      <button type="button" class="control" id="copy-room">Copy room link</button>
+      <span id="room-copy-status" class="copy-feedback" role="status"></span>
+    </div>
+  </header>
+
+  <section class="checklist" id="checklist" aria-labelledby="checklist-title" hidden>
+    <div class="checklist-head">
+      <div><h2 id="checklist-title">Get your team set up</h2><p class="meta" id="checklist-progress"></p></div>
+      <button type="button" class="action small retire" id="checklist-hide">Hide</button>
+    </div>
+    <div class="progress" aria-hidden="true"><span id="checklist-bar"></span></div>
+    <ol id="checklist-steps"></ol>
+  </section>
+
+  <section class="workspace" aria-labelledby="workspace-title">
+    <div>
+      <h2 id="workspace-title">Project workspace</h2>
+      <p id="workspace-summary">Connect your project to share decisions, file activity, and code with your team.</p>
+    </div>
+    <div class="workspace-actions">
+      <button type="button" class="control primary" data-guide="setup" id="setup-guide">Connect your project</button>
+      <button type="button" class="control" data-guide="publish" id="publish-guide" hidden>Share changes</button>
+      <button type="button" class="control" data-guide="menu">Terminal shortcuts</button>
+      <button type="button" class="control" data-guide="sync" id="sync-guide" hidden>Sync updates</button>
+    </div>
+  </section>
+
+  <dl class="metrics">
+    <div class="metric"><dt>Active teammates</dt><dd id="active-total">—</dd></div>
+    <div class="metric"><dt>Open conflicts</dt><dd id="conflicts-total">—</dd></div>
+    <div class="metric"><dt>Open requests</dt><dd id="requests-total">—</dd></div>
+    <div class="metric"><dt>Files with overlap</dt><dd id="overlap-total">—</dd></div>
+  </dl>
+
+  <div class="grid">
+   <div class="column">
+    <section id="conflicts" class="panel" hidden>
+      <h2>Decision conflicts <span class="count" id="conflict-count"></span></h2>
+      <div id="conflict-list"></div>
+    </section>
+    <section id="requests" class="panel" hidden>
+      <h2>Decision requests <span class="count" id="request-count"></span></h2>
+      <div id="request-list"></div>
+    </section>
+    <section id="git-panel" class="panel">
+      <h2>GitHub</h2>
+      <p id="git-repository" class="meta"></p>
+      <div class="repo-actions" id="repo-actions"></div>
+      <ul id="git-activity"></ul>
+    </section>
+    <section class="panel" id="contract">
+      <h2>Team decisions <span class="count" id="decisions-total"></span></h2>
+      <ul id="decisions"></ul>
+      <details class="retired" id="retired" hidden>
+        <summary id="retired-summary"></summary>
+        <ul id="retired-list"></ul>
+      </details>
+    </section>
+   </div>
+   <div class="column">
+    <section class="panel" id="claim-panel">
+      <h2>Claimed work</h2>
+      <p class="meta">The first reservation wins. Supported agent edits pause when a teammate owns the file.</p>
+      <ul id="claims"></ul>
+    </section>
+    <section class="panel" id="chat-panel">
+      <h2>Team chat</h2>
+      <p class="meta">Every teammate's agent shows a new message to its user once, before their next prompt. Start with @name to message one person.</p>
+      <ul id="messages" aria-live="polite"></ul>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-name" required maxlength="50" placeholder="Your name" autocomplete="name" aria-label="Your name">
+        <input id="chat-text" required maxlength="500" placeholder="Message the team" autocomplete="off" aria-label="Message">
+        <button class="control primary" id="chat-send" type="submit">Send</button>
+      </form>
+      <p id="chat-error" class="form-error" role="alert" hidden></p>
+    </section>
+    <section class="panel" id="ask-panel">
+      <h2>Ask a teammate's agent</h2>
+      <p class="meta">Send a prompt to a teammate's agent. Nothing runs until they approve, here or in their own chat. Their agent answers back.</p>
+      <ul id="asks" aria-live="polite"></ul>
+      <p id="ask-hint" class="hint" hidden>Set a team key (bottom of the page) to approve requests here. A teammate can also approve in their own chat with their agent.</p>
+      <form id="ask-form" class="ask-form">
+        <div class="ask-row">
+          <input id="ask-name" required maxlength="50" placeholder="Your name" autocomplete="name" aria-label="Your name">
+          <select id="ask-to" required aria-label="Teammate"><option value="">Teammate…</option></select>
+          <select id="ask-mode" aria-label="What their agent may do"><option value="read">Read only</option><option value="edit">Can edit files</option></select>
+        </div>
+        <textarea id="ask-prompt" required maxlength="800" rows="3" placeholder="What should their agent do? Example: can you look at why the login test is flaky on your branch? No changes, just tell me what you find." aria-label="Request"></textarea>
+        <button class="control primary" id="ask-send" type="submit">Send for approval</button>
+      </form>
+      <p id="ask-error" class="form-error" role="alert" hidden></p>
+    </section>
+    <section class="panel" id="file-panel">
+      <h2>Recent file edits</h2>
+      <p class="meta" id="file-window"></p>
+      <ul id="file-edits"></ul>
+    </section>
+    <section class="panel">
+      <h2>Teammates</h2>
+      <div class="people" id="people"></div>
+    </section>
+    <section class="panel">
+      <h2>Decision activity</h2>
+      <ul id="activity"></ul>
+    </section>
+   </div>
+  </div>
+
+  <footer>
+    <span id="checker"></span>
+    <span id="key-status"></span>
+    <button id="set-key" type="button" hidden>Set team key</button>
+    <button id="reset" type="button">Reset room</button>
+  </footer>
+</main>
+
+<dialog id="terminal-dialog" aria-labelledby="terminal-title">
+  <h2 id="terminal-title"></h2>
+  <p class="meta" id="terminal-intro"></p>
+  <ol id="terminal-steps" class="terminal-steps"></ol>
+  <div class="terminal-footer">
+    <span id="command-copy-status" class="copy-feedback" role="status"></span>
+    <form method="dialog"><button type="submit" class="control">Close</button></form>
+  </div>
+</dialog>
+
+<dialog id="answer-dialog" aria-labelledby="answer-question">
+  <form id="answer-form">
+    <h2 id="answer-question"></h2>
+    <div id="answer-options" class="answer-options" aria-label="Suggested answers"></div>
+    <label>Decision<textarea id="answer-text" required maxlength="500" rows="3"></textarea></label>
+    <label>Your name<input id="answer-author" required maxlength="50" autocomplete="name"></label>
+    <label>Team key<input id="answer-token" type="password" required autocomplete="off"></label>
+    <p id="answer-error" class="form-error" role="alert" hidden></p>
+    <div class="dialog-actions">
+      <button class="action answer-primary" id="answer-submit">Approve decision</button>
+      <button class="action" id="answer-cancel" type="button">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="confirm-dialog" aria-labelledby="confirm-title">
+  <form id="confirm-form">
+    <h2 id="confirm-title"></h2>
+    <p id="confirm-text" class="meta"></p>
+    <label>Your name<input id="confirm-author" required maxlength="50" autocomplete="name"></label>
+    <label><span id="confirm-key-label">Team key</span><input id="confirm-key" type="password" required maxlength="200" autocomplete="off"></label>
+    <p id="confirm-error" class="form-error" role="alert" hidden></p>
+    <div class="dialog-actions">
+      <button class="action answer-primary" id="confirm-submit"></button>
+      <button class="action" id="confirm-cancel" type="button">Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  // The room comes from the address: http://localhost:8000/?room=demo
+  const room = new URLSearchParams(location.search).get("room") || "demo";
+  const ACTIVE_SECONDS = 600;   // a person counts as active for 10 minutes after their last prompt
+  const MAX_EVENTS = 30;
+
+  const $ = (id) => document.getElementById(id);
+  $("room").textContent = room;
+  const cli = "python3 coord/git_sync.py";
+  let roomRepository = null;
+
+  let lastSignature = null;   // what the lists looked like at the last redraw
+  let seen = null;            // items already shown; null until the first load
+  let activeRequest = null;
+  let approvalEnabled = false;
+  let loading = false;
+
+  // Build an element with text. textContent is used everywhere, so text that
+  // an agent recorded can never be run as HTML.
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  async function copyText(text, feedback, fallback) {
+    try {
+      await navigator.clipboard.writeText(text);
+      feedback.textContent = "Copied.";
+    } catch {
+      feedback.textContent = fallback;
+    }
+  }
+
+  $("copy-room").addEventListener("click", () => {
+    const url = new URL("/app", location.origin);
+    url.searchParams.set("room", room);
+    copyText(url.href, $("room-copy-status"), "Copy the room link from your address bar.");
+  });
+
+  // Quote a value for the macOS/Linux shell, including embedded quotes.
+  const shellQuote = (value) => "'" + value.replaceAll("'", "'\"'\"'") + "'";
+
+  // A message to paste into a chat app: why, then the one command, then the dashboard.
+  function inviteText() {
+    const dashboard = `${location.origin}/app?${new URLSearchParams({room})}`;
+    return [
+      `Join our Team Contract room "${room}", so our coding agents share decisions and warn each other before editing the same files.`,
+      "",
+      "1. Open Terminal in your copy of the project folder.",
+      "2. Paste this and answer the questions:",
+      `   curl -fsSL ${shellQuote(location.origin + "/install.sh")} | bash -s -- --room ${shellQuote(room)} --server ${shellQuote(location.origin)}`,
+      "3. Open Claude Code in that folder and allow the team-contract tool when asked.",
+      "",
+      `Team dashboard: ${dashboard}`,
+    ].join("\n");
+  }
+  function copyInvite() {
+    copyText(inviteText(), $("room-copy-status"), "Could not copy. Open Connect your project and copy the command from there.")
+      .then(() => { if ($("room-copy-status").textContent === "Copied.") $("room-copy-status").textContent = "Invite copied. Paste it to your teammate."; });
+  }
+
+  function selectNavigation() {
+    for (const link of document.querySelectorAll("nav a")) {
+      if (link.hash === (location.hash || "#overview")) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    }
+  }
+  window.addEventListener("hashchange", selectNavigation);
+  selectNavigation();
+
+  function openGuide(kind) {
+    const guides = {
+      menu: {
+        title: "Everyday shortcuts",
+        intro: "In Terminal, inside your project folder. Type ./tc on its own to see every action as a numbered menu.",
+        steps: [
+          ["What's going on?", "Who is working on what, anything that needs you, and one next step.", "./tc today"],
+          ["Open your workspace", "Opens Claude, and keeps your shared branch updated if you turned that on during setup.", "./tc work"],
+          ["Everything else", "Start a task, share, get the latest code, see claims, check your setup.", "./tc"],
+        ],
+      },
+      setup: {
+        title: "Connect your project",
+        intro: "One command, then answer a few questions. You need Python 3 and curl, on Mac or Linux.",
+        steps: [
+          ["Join this room", "Open Terminal inside your project folder, paste this, and follow the questions. It installs Team Contract, asks your name, can connect GitHub, and can open Claude for you.",
+           `curl -fsSL ${shellQuote(location.origin + "/install.sh")} | bash -s -- --room ${shellQuote(room)} --server ${shellQuote(location.origin)}`],
+          ["Next time", "In that folder: ./tc work opens Claude, ./tc today shows what is going on.", "./tc today"],
+        ],
+      },
+      publish: {
+        title: "Share changes for review",
+        intro: "Easiest: just ask Claude. It starts the task, commits the files that belong to it, checks them against the team's decisions and opens the pull request, then gives you the review link.",
+        steps: [
+          ["Say this to Claude before you begin", "Claude starts a task branch from the team's latest code. Work you already began comes along.", "start a task for the todo API"],
+          ["Say this when it works", "Claude commits this task's files, checks them against the contract, and opens or updates the pull request.", "share my work"],
+          ["Or in Terminal", "./tc start asks for the task in plain words. ./tc share shares what you have committed.", "./tc share"],
+        ],
+      },
+      sync: {
+        title: "Get the team's latest code",
+        intro: "Easiest: just ask Claude. Your copy is only updated when that is safe, and you are told why when it is not. Your unsaved work is never overwritten.",
+        steps: [
+          ["Say this to Claude", "Brings merged pull requests into your shared branch.", "get the latest code from the team"],
+          ["Or in Terminal, once", "Does the same thing from Terminal.", "./tc sync"],
+          ["Or keep it updated while you work", "Leave this window open. Press Ctrl+C to stop.", "./tc watch"],
+        ],
+      },
+    };
+    if (roomRepository) {
+      guides.setup.steps.unshift(["Get your team’s project", "If you don’t have it on your computer yet, clone the repository from GitHub.",
+        null, ["Open project on GitHub", `https://github.com/${roomRepository.repository}`]]);
+    } else {
+      guides.setup.steps.push(["Before connecting GitHub", "Set a team key at the bottom of this dashboard. Guided setup will ask for that key when linking your existing repository. You can skip GitHub and connect it later."]);
+    }
+    guides.setup.steps.push(["Allow the agent connection", "When Claude opens, sign in if needed, trust your project, and allow the team-contract tool. These choices stay in your hands."]);
+    const guide = guides[kind];
+    $("terminal-title").textContent = guide.title;
+    $("terminal-intro").textContent = guide.intro;
+    $("command-copy-status").textContent = "";
+    const list = $("terminal-steps");
+    list.replaceChildren();
+    for (const [label, description, command, resource] of guide.steps) {
+      const step = el("li");
+      step.append(el("strong", null, label), el("p", "hint", description));
+      if (command) {
+        const box = el("div", "command-box");
+        const copy = el("button", "control", "Copy");
+        copy.type = "button";
+        copy.setAttribute("aria-label", `Copy command for ${label.toLowerCase()}`);
+        copy.addEventListener("click", () => copyText(command, $("command-copy-status"), "Select the command to copy it manually."));
+        box.append(el("code", null, command), copy);
+        step.append(box);
+      }
+      if (resource) {
+        const link = el("a", "hint", resource[0]);
+        link.href = resource[1];
+        step.append(link);
+      }
+      list.append(step);
+    }
+    $("terminal-dialog").showModal();
+  }
+
+  for (const button of document.querySelectorAll("[data-guide]")) {
+    button.addEventListener("click", () => openGuide(button.dataset.guide));
+  }
+
+  // The name is remembered on this computer. The team key is remembered only
+  // until this browser tab is closed. Both are optional conveniences.
+  const memory = {
+    read(area, key) { try { return window[area].getItem(key) || ""; } catch { return ""; } },
+    write(area, key, value) { try { window[area].setItem(key, value); } catch { /* storage is blocked */ } },
+  };
+  const savedName = () => memory.read("localStorage", "tc-name");
+  const savedKey = () => memory.read("sessionStorage", "tc-key:" + room);
+  function remember(name, key) {
+    memory.write("localStorage", "tc-name", name);
+    if (key) memory.write("sessionStorage", "tc-key:" + room, key);
+  }
+
+  // Send one change to the server. The team key travels in a header.
+  async function send(path, body, key) {
+    const headers = {"Content-Type": "application/json"};
+    if (key) headers["X-Contract-Token"] = key;
+    const response = await fetch(path, { method: "POST", headers, body: body ? JSON.stringify(body) : undefined });
+    if (!response.ok) {
+      let detail;
+      try { ({detail} = await response.json()); } catch { /* not JSON */ }
+      throw new Error(typeof detail === "string" ? detail : "That was not accepted. Check the fields and try again.");
+    }
+    return response.json();
+  }
+
+  // One dialog for every human-only action: it asks who you are and the team key.
+  let confirmRun = null;
+  function askHuman({title, text, button, newKey = false, run}) {
+    confirmRun = run;
+    $("confirm-form").reset();
+    $("confirm-error").hidden = true;
+    $("confirm-title").textContent = title;
+    $("confirm-text").textContent = text;
+    $("confirm-submit").textContent = button;
+    $("confirm-key-label").textContent = newKey ? "Choose a team key (8 characters or more)" : "Team key";
+    $("confirm-key").minLength = newKey ? 8 : 1;
+    $("confirm-author").value = savedName();
+    $("confirm-key").value = newKey ? "" : savedKey();
+    $("confirm-dialog").showModal();
+  }
+  $("confirm-cancel").addEventListener("click", () => $("confirm-dialog").close());
+  $("confirm-dialog").addEventListener("close", () => { $("confirm-key").value = ""; confirmRun = null; });
+  $("confirm-dialog").addEventListener("cancel", (event) => {
+    if ($("confirm-submit").disabled) event.preventDefault();
+  });
+  $("confirm-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirmRun || $("confirm-submit").disabled) return;
+    const author = $("confirm-author").value.trim();
+    const key = $("confirm-key").value;
+    $("confirm-error").hidden = true;
+    $("confirm-submit").disabled = $("confirm-cancel").disabled = true;
+    try {
+      await confirmRun({author, key});
+      remember(author, key);
+      $("confirm-dialog").close();
+      tick();
+    } catch (error) {
+      $("confirm-error").textContent = error.message || "Could not save. Try again.";
+      $("confirm-error").hidden = false;
+    } finally {
+      $("confirm-submit").disabled = $("confirm-cancel").disabled = false;
+    }
+  });
+
+  function settleConflict(c, action) {
+    const keep = action === "keep";
+    askHuman({
+      title: keep ? "Keep the team's decision?" : "Switch the team's decision?",
+      text: keep
+        ? `The team keeps: ${c.existing_text} The request from ${c.new_author}'s AI is closed.`
+        : `The team switches to: ${c.new_text} This retires: ${c.existing_text} Every teammate's AI is told on its next prompt.`,
+      button: keep ? "Keep it" : "Switch",
+      run: ({author, key}) => send(`/conflicts/${c.id}/resolve`, {room, author, action}, key),
+    });
+  }
+
+  function retireDecision(d) {
+    askHuman({
+      title: "Retire this decision?",
+      text: `This leaves the contract: ${d.text} It stays visible as history, and every teammate's AI is told on its next prompt.`,
+      button: "Retire",
+      run: ({author, key}) => send(`/decisions/${d.id}/retire`, {room, author}, key),
+    });
+  }
+
+  function ago(seconds) {
+    if (seconds < 10) return "just now";
+    if (seconds < 60) return `${Math.floor(seconds)}s ago`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+    return `${Math.floor(seconds / 3600)} h ago`;
+  }
+
+  // A span whose text is refreshed every second without redrawing the lists.
+  function timeSpan(created) {
+    const span = el("span");
+    span.dataset.time = created;
+    return span;
+  }
+
+  function updateTimes(serverNow) {
+    const now = new Date(serverNow).getTime();
+    for (const span of document.querySelectorAll("[data-time]")) {
+      span.textContent = ago((now - new Date(span.dataset.time).getTime()) / 1000);
+    }
+  }
+
+  // A round badge with the first letter of a name. The same name always gets the same colour.
+  function avatar(name) {
+    let hash = 0;
+    for (const char of String(name)) hash = (hash * 31 + char.codePointAt(0)) >>> 0;
+    return el("span", `am-avatar a${hash % 5}`, (String(name).trim()[0] || "?").toUpperCase());
+  }
+
+  function renderPeople(people) {
+    const box = $("people");
+    box.replaceChildren();
+    if (!people.length) box.append(el("p", "empty", "No teammates have connected yet."));
+    for (const person of people) {
+      const active = person.seconds_ago < ACTIVE_SECONDS;
+      const chip = el("span", "person" + (active ? " active" : ""));
+      chip.append(avatar(person.name), el("span", null, person.name));
+      chip.append(el("small", null, active ? "active" : ago(person.seconds_ago)));
+      box.append(chip);
+    }
+  }
+
+  function renderLists(state) {
+    const isFresh = (key) => seen !== null && !seen.has(key);
+    const nowSeen = new Set();
+
+    // Conflicts
+    const conflictList = $("conflict-list");
+    conflictList.replaceChildren();
+    const openConflicts = state.conflicts.filter((c) => !c.resolution);
+    for (const c of openConflicts) {
+      const key = "c" + c.id;
+      nowSeen.add(key);
+      const card = el("div", "conflict" + (isFresh(key) ? " fresh" : ""));
+      const top = el("div", "top");
+      top.append(el("span", "badge", "CONFLICT"));
+      const when = el("span", "meta");
+      when.append(timeSpan(c.created_at));
+      top.append(when);
+      const sides = el("div", "sides");
+      const wanted = el("div", "side");
+      wanted.append(el("div", "who", `${c.new_author}'s AI wanted`), el("div", "what", c.new_text));
+      const decided = el("div", "side");
+      decided.append(el("div", "who", `Team already decided (${c.existing_author})`),
+                     el("div", "what", c.existing_text || "(see contract)"));
+      if (state.approval_enabled) {
+        const replace = el("button", "action small", "Switch to this");
+        replace.type = "button";
+        replace.addEventListener("click", () => settleConflict(c, "replace"));
+        wanted.append(replace);
+        const keep = el("button", "action small", "Keep this");
+        keep.type = "button";
+        keep.addEventListener("click", () => settleConflict(c, "keep"));
+        decided.append(keep);
+      }
+      sides.append(wanted, decided);
+      card.append(top, el("p", "why", c.explanation), sides);
+      if (!state.approval_enabled) {
+        card.append(el("p", "hint", "To settle this here, set a team key at the bottom of the page."));
+      }
+      conflictList.append(card);
+    }
+    $("conflicts").hidden = openConflicts.length === 0;
+    $("conflict-count").textContent = openConflicts.length ? `${openConflicts.length} open` : "";
+    $("conflicts-total").textContent = openConflicts.length;
+
+    // Decisions, newest first
+    const decisions = $("decisions");
+    decisions.replaceChildren();
+    for (const d of [...state.decisions].reverse()) {
+      const key = "d" + d.id;
+      nowSeen.add(key);
+      const row = el("li", "decision" + (isFresh(key) ? " fresh" : ""));
+      const body = el("div");
+      const meta = el("div", "meta", `${d.author}'s AI · `);
+      meta.append(timeSpan(d.created_at));
+      body.append(el("div", "what", d.text), meta);
+      row.append(el("span", "tag " + d.category, d.category), body);
+      if (state.approval_enabled) {
+        const retire = el("button", "action small retire", "Retire");
+        retire.type = "button";
+        retire.setAttribute("aria-label", `Retire decision: ${d.text}`);
+        retire.addEventListener("click", () => retireDecision(d));
+        row.append(retire);
+      }
+      decisions.append(row);
+    }
+    if (state.decisions.length === 0) {
+      decisions.append(el("li", "empty", "No decisions yet. The first decision an AI makes will appear here."));
+    }
+    $("decisions-total").textContent = state.decisions.length;
+
+    // Retired decisions: history, folded away by default
+    const retired = state.retired_decisions || [];
+    $("retired").hidden = retired.length === 0;
+    $("retired-summary").textContent = `Retired decisions (${retired.length})`;
+    const retiredList = $("retired-list");
+    retiredList.replaceChildren();
+    for (const d of retired) {
+      const row = el("li", "retired-row");
+      row.append(el("s", null, d.text));
+      const note = d.replaced_by_text ? `Replaced by: ${d.replaced_by_text} · ` : "";
+      const meta = el("div", "meta", `${note}Retired by ${d.retired_by} · `);
+      meta.append(timeSpan(d.retired_at));
+      row.append(meta);
+      retiredList.append(row);
+    }
+
+    // Activity: decisions and conflicts together, newest first
+    const events = [
+      ...state.decisions.map((d) => ({ key: "d" + d.id, time: d.created_at, bad: false, who: d.author, text: `recorded: ${d.text}` })),
+      ...state.conflicts.map((c) => ({ key: "c" + c.id, time: c.created_at, bad: true, who: c.new_author, text: `was stopped: ${c.new_text}` })),
+      // What humans decided on this page
+      ...state.conflicts.filter((c) => c.resolution === "kept").map((c) => (
+        { key: "k" + c.id, time: c.resolved_at, human: true, who: c.resolved_by, text: `kept the team's decision over: ${c.new_text}` })),
+      ...state.conflicts.filter((c) => c.resolution === "replaced").map((c) => (
+        { key: "k" + c.id, time: c.resolved_at, human: true, who: c.resolved_by, text: `switched the team to: ${c.new_text}` })),
+      ...retired.filter((d) => !d.replaced_by).map((d) => (
+        { key: "r" + d.id, time: d.retired_at, human: true, who: d.retired_by, text: `retired: ${d.text}` })),
+    ].sort((a, b) => (a.time < b.time ? 1 : a.time > b.time ? -1 : 0)).slice(0, MAX_EVENTS);
+    const activity = $("activity");
+    activity.replaceChildren();
+    for (const e of events) {
+      nowSeen.add(e.key);
+      const row = el("li", "event" + (e.bad ? " bad" : "") + (isFresh(e.key) ? " fresh" : ""));
+      const line = el("div");
+      line.append(el("b", null, e.human ? `${e.who} ` : `${e.who}'s AI `), document.createTextNode(e.text));
+      const meta = el("div", "meta");
+      meta.append(timeSpan(e.time));
+      row.append(line, meta);
+      activity.append(row);
+    }
+    if (events.length === 0) activity.append(el("li", "empty", "Nothing has happened yet."));
+
+    seen = nowSeen;
+  }
+
+  function renderRequests(state) {
+    const requests = state.decision_requests || [];
+    const answers = new Map([...state.decisions, ...(state.retired_decisions || [])].map((d) => [d.id, d]));
+    $("requests").hidden = !requests.length;
+    const openCount = requests.filter((r) => r.decision_id === null).length;
+    $("request-count").textContent = `${openCount} open`;
+    $("requests-total").textContent = openCount;
+    const list = $("request-list");
+    list.replaceChildren();
+    for (const request of [...requests].sort((a, b) => Number(a.decision_id !== null) - Number(b.decision_id !== null))) {
+      const card = el("article", "request-card");
+      const meta = el("p", "meta", `${request.category} · Requested by ${request.author} · `);
+      meta.append(timeSpan(request.created_at));
+      card.append(el("h3", null, request.question), meta);
+      if (request.decision_id !== null) {
+        const answer = answers.get(request.decision_id);
+        card.append(el("p", "answered", answer ? `Answered · ${answer.text}` : "Answered"));
+      } else if (state.approval_enabled) {
+        const button = el("button", "action", "Answer request");
+        button.setAttribute("aria-label", `Answer request: ${request.question}`);
+        button.addEventListener("click", () => showAnswer(request));
+        card.append(button);
+      } else {
+        card.append(el("p", "hint", "To answer here, set a team key at the bottom of the page."));
+      }
+      list.append(card);
+    }
+  }
+
+  function showAnswer(request) {
+    activeRequest = request;
+    $("answer-form").reset();
+    $("answer-error").hidden = true;
+    $("answer-author").value = savedName();
+    $("answer-token").value = savedKey();
+    $("answer-question").textContent = request.question;
+    const options = $("answer-options");
+    options.replaceChildren();
+    for (const option of request.options) {
+      const button = el("button", "action", option);
+      button.type = "button";
+      button.addEventListener("click", () => {
+        $("answer-text").value = option;
+        $("answer-text").focus();
+      });
+      options.append(button);
+    }
+    $("answer-dialog").showModal();
+  }
+
+  $("answer-cancel").addEventListener("click", () => $("answer-dialog").close());
+  $("answer-dialog").addEventListener("close", () => {
+    $("answer-token").value = "";
+    activeRequest = null;
+  });
+  $("answer-dialog").addEventListener("cancel", (event) => {
+    if ($("answer-submit").disabled) event.preventDefault();
+  });
+  $("answer-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!activeRequest || $("answer-submit").disabled) return;
+    const errorBox = $("answer-error");
+    errorBox.hidden = true;
+    $("answer-submit").disabled = $("answer-cancel").disabled = true;
+    try {
+      const response = await fetch(`/decision-requests/${activeRequest.id}/answer`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-Contract-Token": $("answer-token").value},
+        body: JSON.stringify({room, author: $("answer-author").value, text: $("answer-text").value}),
+      });
+      if (!response.ok) {
+        const {detail} = await response.json();
+        throw new Error(typeof detail === "string" ? detail : "Enter a name and a decision to approve.");
+      }
+      remember($("answer-author").value.trim(), $("answer-token").value);
+      $("answer-dialog").close();
+      tick();
+    } catch (error) {
+      errorBox.textContent = error.message || "Could not submit the answer. Try again.";
+      errorBox.hidden = false;
+    } finally {
+      $("answer-submit").disabled = $("answer-cancel").disabled = false;
+    }
+  });
+
+  function setLive(ok) {
+    $("live").classList.toggle("down", !ok);
+    $("live-text").textContent = ok ? "Room online" : "Connection lost";
+  }
+
+  function renderGit(git) {
+    const rows = $("git-activity");
+    const actions = $("repo-actions");
+    rows.replaceChildren();
+    actions.replaceChildren();
+    roomRepository = git?.repository || null;
+    $("publish-guide").hidden = $("sync-guide").hidden = !roomRepository;
+    $("setup-guide").textContent = roomRepository ? "Setup guide" : "Connect your project";
+    $("setup-guide").classList.toggle("primary", !roomRepository);
+    $("publish-guide").classList.toggle("primary", !!roomRepository);
+    if (!roomRepository) {
+      $("workspace-summary").textContent = "Connect your project to share decisions, file activity, and code with your team.";
+      $("git-repository").textContent = "This room has no GitHub repository yet.";
+      return;
+    }
+    const {repository, base_branch} = roomRepository;
+    const url = `https://github.com/${repository}`;
+    $("workspace-summary").textContent = `Share work for review and keep your local copy of ${base_branch} up to date.`;
+    const link = el("a", null, repository);
+    link.href = url;
+    $("git-repository").replaceChildren(link, document.createTextNode(` · Shared branch: ${base_branch}`));
+    const pulls = el("a", "control", "Open pull requests");
+    pulls.href = `${url}/pulls`;
+    actions.append(pulls);
+    const statuses = {
+      draft: "Draft",
+      in_review: "Ready for review",
+      approved: "Approved",
+      changes_requested: "Changes requested",
+    };
+    for (const activity of git.activity) {
+      const row = el("li", "git-row");
+      const heading = el("div");
+      heading.append(avatar(activity.author), el("strong", null, activity.author), document.createTextNode(` · ${activity.branch}`));
+      const statusLabel = statuses[activity.pr_state];
+      if (typeof statusLabel === "string") heading.append(el("span", `git-pill ${activity.pr_state}`, statusLabel));
+      row.append(heading);
+      // The contract check of this branch's code, from the last time it was shared.
+      const checked = (git.checks || []).find((c) => c.author === activity.author && c.branch === activity.branch);
+      if (checked && checked.findings.length) {
+        heading.append(el("span", "git-pill changes_requested",
+          checked.findings.length === 1 ? "Breaks a team decision" : `Breaks ${checked.findings.length} team decisions`));
+        for (const finding of checked.findings) {
+          const line = el("div", "check-finding");
+          line.append(el("code", null, finding.file), document.createTextNode(` ${finding.explanation}`));
+          line.append(el("div", "meta", `Team decision: ${finding.decision}`));
+          row.append(line);
+        }
+      } else if (checked) {
+        heading.append(el("span", "git-pill approved", "Fits the contract"));
+      }
+      if (activity.pr_number) {
+        const links = el("div", "git-links");
+        const pr = el("a", null, `Pull request #${activity.pr_number}`);
+        pr.href = `${url}/pull/${activity.pr_number}`;
+        const review = el("a", null, "View changed files");
+        review.href = `${pr.href}/files`;
+        links.append(pr, review);
+        row.append(links);
+      }
+      const status = activity.behind
+        ? `${activity.behind} commits behind ${base_branch}`
+        : `Includes the latest reported ${base_branch}`;
+      const meta = el("div", "meta", `${activity.ahead} branch commits · ${status} · Reported `);
+      meta.append(timeSpan(activity.checked_at));
+      row.append(meta);
+      rows.append(row);
+    }
+    if (!git.activity.length) rows.append(el("li", "empty", "Published work will appear here when a teammate shares it."));
+  }
+
+  function renderClaims(claims) {
+    const list = $("claims");
+    list.replaceChildren();
+    for (const claim of claims || []) {
+      const row = el("li", "file-row");
+      row.append(el("strong", null, claim.task));
+      const span = claim.until_merged
+        ? `until ${claim.branch} merges`
+        : `${claim.minutes_left} min left`;
+      const meta = el("div", "who-line");
+      meta.append(avatar(claim.author), document.createTextNode(`${claim.author} · ${span} · claimed `), timeSpan(claim.created_at));
+      row.append(meta);
+      const paths = el("div", "who-line");
+      claim.paths.forEach((path, index) => {
+        if (index) paths.append(document.createTextNode(" "));
+        paths.append(el("code", null, path));
+      });
+      row.append(paths);
+      list.append(row);
+    }
+    if (!(claims || []).length) list.append(el("li", "empty", "Nothing is claimed. Agents claim files before a task; you can also ask Claude to “claim” them."));
+  }
+
+  function renderMessages(messages) {
+    const list = $("messages");
+    const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 40;
+    list.replaceChildren();
+    for (const message of messages || []) {
+      const row = el("li", "msg");
+      const head = el("div", "who-line");
+      head.append(avatar(message.author), el("strong", null, message.author));
+      if (message.to) head.append(el("span", "am-chip blue", `to ${message.to}`));
+      head.append(timeSpan(message.created_at));
+      row.append(head, el("div", "msg-text", message.text));
+      list.append(row);
+    }
+    if (!(messages || []).length) list.append(el("li", "empty", "No messages yet. Every agent will show yours to its user once."));
+    if (atBottom) list.scrollTop = list.scrollHeight;
+  }
+
+  const askStatus = {
+    pending: ["Waiting for approval", "amber"], approved: ["Approved", "blue"], done: ["Done", "green"],
+    declined: ["Declined", "ember"], expired: ["Expired", ""], cancelled: ["Cancelled", ""],
+  };
+
+  function renderAsks(asks) {
+    const list = $("asks");
+    list.replaceChildren();
+    $("ask-hint").hidden = approvalEnabled || !(asks || []).some((a) => a.status === "pending");
+    for (const ask of asks || []) {
+      const row = el("li", "msg ask");
+      const head = el("div", "who-line");
+      const [label, tone] = askStatus[ask.status] || [ask.status, ""];
+      head.append(avatar(ask.from), el("strong", null, `${ask.from} → ${ask.to}`),
+                  el("span", `am-chip ${tone}`, ask.status === "approved" && ask.via ? `${label} (${ask.via})` : label),
+                  el("span", "am-chip", ask.can_edit ? "may edit files" : "read only"), timeSpan(ask.created_at));
+      row.append(head, el("div", "msg-text", ask.prompt));
+      if (ask.result) {
+        const result = el("div", "ask-result");
+        result.append(el("strong", null, `${ask.to}'s agent: `), document.createTextNode(ask.result));
+        row.append(result);
+      }
+      if (ask.status === "pending") {
+        const actions = el("div", "ask-actions");
+        if (approvalEnabled) {
+          for (const [action, text, tone2] of [["approve", "Approve", "answer-primary"], ["decline", "Decline", ""]]) {
+            const button = el("button", `action small ${tone2}`.trim(), text);
+            button.type = "button";
+            button.addEventListener("click", () => askHuman({
+              title: action === "approve" ? `Approve this request for ${ask.to}'s agent?` : "Decline this request?",
+              text: action === "approve"
+                ? `${ask.to}'s agent will be told to run this (${ask.can_edit ? "it may edit files" : "read only"}): ${ask.prompt} Enter ${ask.to}'s name and the team key.`
+                : `${ask.from} is told it was declined. Enter ${ask.to}'s name and the team key.`,
+              button: text,
+              run: ({author, key}) => send(`/asks/${ask.id}/answer`, {room, author, action}, key),
+            }));
+            actions.append(button);
+          }
+        }
+        if (savedName() === ask.from) {
+          const cancel = el("button", "action small retire", "Cancel request");
+          cancel.type = "button";
+          cancel.addEventListener("click", async () => {
+            try { await send(`/asks/${ask.id}/answer`, {room, author: ask.from, action: "cancel"}); tick(); } catch (error) { alert(error.message); }
+          });
+          actions.append(cancel);
+        }
+        if (actions.children.length) row.append(actions);
+      }
+      list.append(row);
+    }
+    if (!(asks || []).length) list.append(el("li", "empty", "No requests yet."));
+  }
+
+  // The teammate list for the request form changes rarely; keep the chosen person when it is redrawn.
+  function renderAskTargets(people) {
+    const select = $("ask-to");
+    const names = people.map((p) => p.name).join("\n");
+    if (select.dataset.names === names) return;
+    select.dataset.names = names;
+    const chosen = select.value;
+    select.replaceChildren(new Option("Teammate…", ""), ...people.map((p) => new Option(p.name, p.name)));
+    select.value = people.some((p) => p.name === chosen) ? chosen : "";
+  }
+
+  $("ask-name").value = savedName();
+  $("ask-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const author = $("ask-name").value.trim();
+    const to = $("ask-to").value;
+    const prompt = $("ask-prompt").value.trim();
+    if (!author || !to || !prompt || $("ask-send").disabled) return;
+    $("ask-error").hidden = true;
+    $("ask-send").disabled = true;
+    try {
+      await send("/asks", {room, author, to, prompt, can_edit: $("ask-mode").value === "edit"});
+      remember(author);
+      $("ask-prompt").value = "";
+      tick();
+    } catch (error) {
+      $("ask-error").textContent = error.message;
+      $("ask-error").hidden = false;
+    } finally {
+      $("ask-send").disabled = false;
+    }
+  });
+
+  // A setup list that ticks itself off from what the room already shows.
+  const checklistHidden = () => memory.read("localStorage", "tc-checklist-hidden:" + room) === "1";
+  function renderChecklist(state) {
+    const people = state.people || [];
+    const steps = [
+      [people.length > 0, "Connect your project", "Run one command in your project folder.", ["Show me how", () => openGuide("setup")]],
+      [Boolean(state.room_key || state.approval_enabled), "Set a team key", "A password only people know, needed to settle conflicts and approve requests.", ["Set team key", () => $("set-key").click()]],
+      [people.length > 1, "Invite a teammate", "Copy a ready-made message with the one command, and send it.", ["Copy invite", copyInvite]],
+      [Boolean(state.git?.repository), "Connect GitHub (optional)", "Lets agents share work as pull requests and bring in merged code.", ["Show me how", () => openGuide("setup")]],
+      [(state.decisions || []).length > 0, "Make your first team decision", "Ask Claude to build something. It records choices like the framework, so every agent follows them.", null],
+    ];
+    const done = steps.filter(([ok]) => ok).length;
+    const card = $("checklist");
+    card.hidden = done === steps.length || checklistHidden();
+    if (card.hidden) return;
+    const signature = JSON.stringify(steps.map(([ok]) => ok));
+    if (card.dataset.signature === signature) return;
+    card.dataset.signature = signature;
+    $("checklist-progress").textContent = `${done} of ${steps.length} done`;
+    $("checklist-bar").style.width = `${(100 * done) / steps.length}%`;
+    const list = $("checklist-steps");
+    list.replaceChildren();
+    let next = true;
+    steps.forEach(([ok, label, hint, action], index) => {
+      const item = el("li", ok ? "done" : next ? "next" : "");
+      if (!ok) next = false;
+      item.append(el("span", "tick", ok ? "✓" : String(index + 1)));
+      const text = el("div");
+      text.append(el("strong", null, label), el("p", "hint", ok ? "Done." : hint));
+      item.append(text);
+      if (!ok && action) {
+        const button = el("button", item.className === "next" ? "control primary" : "control", action[0]);
+        button.type = "button";
+        button.addEventListener("click", action[1]);
+        item.append(button);
+      }
+      list.append(item);
+    });
+  }
+  $("checklist-hide").addEventListener("click", () => {
+    memory.write("localStorage", "tc-checklist-hidden:" + room, "1");
+    $("checklist").hidden = true;
+  });
+  $("copy-invite").addEventListener("click", copyInvite);
+
+  let knownPeople = [];
+  $("chat-name").value = savedName();
+  $("chat-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const author = $("chat-name").value.trim();
+    let text = $("chat-text").value.trim();
+    if (!author || !text || $("chat-send").disabled) return;
+    let to = null;
+    const mention = text.match(/^@(\S+)\s+([\s\S]+)$/);
+    const person = mention && knownPeople.find((p) => p.name.toLowerCase() === mention[1].toLowerCase());
+    if (person) { to = person.name; text = mention[2]; }
+    $("chat-error").hidden = true;
+    $("chat-send").disabled = true;
+    try {
+      await send("/messages", {room, author, text, ...(to ? {to} : {})});
+      remember(author);
+      $("chat-text").value = "";
+      tick();
+    } catch (error) {
+      $("chat-error").textContent = error.message;
+      $("chat-error").hidden = false;
+    } finally {
+      $("chat-send").disabled = false;
+    }
+  });
+
+  function renderFiles(files) {
+    const list = $("file-edits");
+    list.replaceChildren();
+    const editsByPath = new Map();
+    for (const edit of files?.edits || []) {
+      if (!editsByPath.has(edit.path)) editsByPath.set(edit.path, []);
+      editsByPath.get(edit.path).push(edit);
+    }
+    $("file-window").textContent = files ? `Last ${files.window_minutes} minutes` : "";
+    const groups = [...editsByPath];
+    $("overlap-total").textContent = groups.filter(([, edits]) => edits.length > 1).length;
+    groups.sort((a, b) => Number(b[1].length > 1) - Number(a[1].length > 1));
+    for (const [path, edits] of groups) {
+      const row = el("li", "file-row");
+      row.append(el("code", null, path));
+      if (edits.length > 1) row.append(el("span", "file-overlap", "Overlap"));
+      for (const edit of edits) {
+        const author = edit.branch ? `${edit.author} · ${edit.branch}` : edit.author;
+        const meta = el("div", "who-line");
+        meta.append(avatar(edit.author), document.createTextNode(`${author} · `), timeSpan(edit.edited_at));
+        // What the edit did: one sentence from the small AI model when the server has one,
+        // otherwise the counts and names the teammate's computer worked out.
+        row.append(meta);
+        if (edit.summary) row.append(el("div", "meta edit-summary", edit.summary));
+      }
+      list.append(row);
+    }
+    if (!groups.length) list.append(el("li", "empty", "No recent edits reported."));
+  }
+
+  async function tick() {
+    if (loading) return;
+    loading = true;
+    let state;
+    try {
+      const response = await fetch(`/state?room=${encodeURIComponent(room)}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(response.status);
+      state = await response.json();
+    } catch {
+      setLive(false);
+      return;
+    } finally {
+      loading = false;
+    }
+    setLive(true);
+    approvalEnabled = state.approval_enabled;
+
+    // Redraw the lists only when something was added or removed, so the
+    // highlight on a new item is not interrupted by the next refresh.
+    const signature = JSON.stringify([state.decisions, state.retired_decisions, state.conflicts, state.decision_requests, state.files, approvalEnabled]);
+    if (signature !== lastSignature) {
+      lastSignature = signature;
+      renderLists(state);
+      renderRequests(state);
+      renderFiles(state.files);
+    }
+    // Claims have their own signature: a new claim, a release or a ticking
+    // "minutes left" must show up even when decisions and files did not change.
+    const claimsSignature = JSON.stringify(state.claims ?? []);
+    if ($("claims").dataset.signature !== claimsSignature) {
+      renderClaims(state.claims);
+      $("claims").dataset.signature = claimsSignature;
+    }
+    const gitSignature = JSON.stringify(state.git ?? null);
+    if ($("git-panel").dataset.signature !== gitSignature) {
+      renderGit(state.git);
+      $("git-panel").dataset.signature = gitSignature;
+    }
+    knownPeople = state.people || [];
+    renderChecklist(state);
+    const messagesSignature = JSON.stringify(state.messages ?? []);
+    if ($("messages").dataset.signature !== messagesSignature) {
+      renderMessages(state.messages);
+      $("messages").dataset.signature = messagesSignature;
+    }
+    renderAskTargets(knownPeople);
+    const asksSignature = JSON.stringify([state.asks ?? [], approvalEnabled]);
+    if ($("asks").dataset.signature !== asksSignature) {
+      renderAsks(state.asks);
+      $("asks").dataset.signature = asksSignature;
+    }
+    renderPeople(state.people || []);
+    $("active-total").textContent = (state.people || []).filter((person) => person.seconds_ago < ACTIVE_SECONDS).length;
+    updateTimes(state.now);
+
+    const checker = $("checker");
+    checker.className = state.checker === "on" ? "" : "warn";
+    checker.textContent = state.checker === "on"
+      ? "Conflict check: on"
+      : "Conflict check: OFF (no API key on the server). Decisions are saved unchecked.";
+    $("key-status").textContent = state.room_key ? "Team key: set" : "Team key: not set";
+    $("set-key").hidden = state.room_key;
+  }
+
+  $("set-key").addEventListener("click", () => askHuman({
+    title: "Set the team key",
+    text: "The team key is a password for this room. People need it to answer requests, settle conflicts and retire decisions. AI agents never see it. Share it with your teammates. It can be set only once.",
+    button: "Set team key",
+    newKey: true,
+    run: ({author, key}) => send("/rooms/key", {room, author, key}),
+  }));
+
+  $("reset").addEventListener("click", async () => {
+    const path = `/reset?room=${encodeURIComponent(room)}`;
+    const warning = `Delete every decision, conflict, request and the GitHub link in room "${room}"? This cannot be undone.`;
+    if (approvalEnabled) {
+      askHuman({ title: "Reset this room?", text: warning, button: "Delete everything", run: ({key}) => send(path, null, key) });
+      return;
+    }
+    if (!confirm(warning)) return;
+    try { await send(path); } catch (error) { alert(error.message); }
+    tick();
+  });
+
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
