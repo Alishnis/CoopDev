@@ -1,0 +1,248 @@
+#!/usr/bin/env python3
+"""Add the team contract tool to a project folder.
+
+    python3 install.py /path/to/your/project
+
+It asks for your name, the room code and the server address, or takes them
+from --name, --room and --server.
+
+What it does, in order:
+  1. copies the hook and the tool into <project>/coord/
+  2. adds the hook to <project>/.claude/settings.json
+  3. adds the tool to <project>/.mcp.json
+  4. writes <project>/coord/me.json (personal, kept out of git)
+
+Existing settings are merged, never overwritten. Running it again is safe:
+the first teammate uses it to install, the others use it to join.
+
+Uses only Python's built-in libraries.
+"""
+
+import argparse
+import json
+import shutil
+import subprocess
+import sys
+import urllib.parse
+from pathlib import Path
+
+SOURCE = Path(__file__).resolve().parent
+sys.path.insert(0, str(SOURCE / "coord"))
+from tc_http import urlopen  # noqa: E402  (HTTPS that also works on Macs without certificates)
+
+FILES_TO_COPY = [
+    "coord/tc_http.py",
+    "coord/hooks/contract_hook.py",
+    "coord/hooks/file_activity.py",
+    "coord/mcp/server.py",
+    "coord/git_sync.py",
+    "coord/team.py",
+    "coord/summary.py",
+    "coord/me.example.json",
+    "tc",
+]
+LAUNCHER = "tc"            # ./tc in the project folder: the short way to run coord/team.py
+LAUNCHER_MARK = "Team Contract shortcut"
+HOOK_SCRIPTS = ("coord/hooks/contract_hook.py", "coord/hooks/file_activity.py")
+TOOL_NAME = "team-contract"
+IGNORE_LINES = ["coord/me.json", "coord/.state/", ".claude/settings.local.json"]
+
+
+def stop(message: str) -> None:
+    sys.exit(f"Stopped: {message}")
+
+
+def read_json(path: Path) -> dict:
+    """Read a JSON file. A missing file is an empty object; a broken one stops the install."""
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text())
+    except json.JSONDecodeError as error:
+        stop(f"{path} is not valid JSON ({error}). Fix it first; nothing in it was changed.")
+    if not isinstance(data, dict):
+        stop(f"{path} does not contain a JSON object. Nothing in it was changed.")
+    return data
+
+
+def write_json(path: Path, data: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def copy_files(target: Path) -> None:
+    copied = 0
+    for relative in FILES_TO_COPY:
+        destination = target / relative
+        if relative == LAUNCHER and destination.exists() and LAUNCHER_MARK not in destination.read_text(errors="replace"):
+            # The project has its own file called tc. Leave it alone.
+            print(f"  kept your own {relative}; use python3 coord/team.py instead of ./tc")
+            continue
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(SOURCE / relative, destination)
+        if relative == LAUNCHER:
+            destination.chmod(0o755)  # a zip download loses the "can run" flag
+        copied += 1
+    print(f"  copied {copied} files (coord/ and the ./tc shortcut)")
+
+
+def add_hook(target: Path) -> None:
+    """Install missing Team Contract hooks without replacing other hooks."""
+    source_hooks = read_json(SOURCE / ".claude/settings.json")["hooks"]
+    path = target / ".claude/settings.json"
+    settings = read_json(path)
+    changed = False
+    for event, source_groups in source_hooks.items():
+        groups = settings.setdefault("hooks", {}).setdefault(event, [])
+        for group in source_groups:
+            hooks = [hook for hook in group["hooks"] if any(
+                script in hook.get("command", "") for script in HOOK_SCRIPTS
+            )]
+            if not hooks:
+                continue
+            existing = [hook for current in groups for hook in current.get("hooks", [])]
+            missing = [hook for hook in hooks if not any(
+                current.get("command") == hook["command"] for current in existing
+            )]
+            if missing:
+                groups.append({**group, "hooks": missing})
+                changed = True
+    if changed:
+        write_json(path, settings)
+        print("  added Team Contract hooks to .claude/settings.json")
+    else:
+        print("  Team Contract hooks already installed")
+
+
+def add_tool(target: Path) -> None:
+    """Merge our MCP server into the project's .mcp.json."""
+    our_server = read_json(SOURCE / ".mcp.json")["mcpServers"][TOOL_NAME]
+    path = target / ".mcp.json"
+    config = read_json(path)
+    servers = config.setdefault("mcpServers", {})
+    if servers.get(TOOL_NAME) == our_server:
+        print("  tool already in .mcp.json")
+        return
+    servers[TOOL_NAME] = our_server
+    write_json(path, config)
+    print("  added the tool to .mcp.json")
+
+
+def ask(label: str, given: str | None, default: str | None) -> str:
+    """Use the command-line value, or ask, or fall back to the default."""
+    if given:
+        return given.strip()
+    if not sys.stdin.isatty():
+        if default:
+            return default
+        stop(f"no {label} given. Pass --{label} when running without a terminal.")
+    hint = f" [{default}]" if default else ""
+    answer = input(f"  {label.capitalize()}{hint}: ").strip() or (default or "")
+    if not answer:
+        stop(f"a {label} is required.")
+    return answer
+
+
+def gather_me(target: Path, args: argparse.Namespace) -> dict:
+    """Who is installing. On a rerun, the earlier answers become the defaults."""
+    old = read_json(target / "coord/me.json")
+    return {
+        **old,  # Keep local preferences, including overlap mode, when upgrading.
+        "name": ask("name", args.name, old.get("name")),
+        "room": ask("room", args.room, old.get("room") or "demo"),
+        "server": server_address(ask("server", args.server, old.get("server") or "http://127.0.0.1:8000")),
+    }
+
+
+def server_address(value: str) -> str:
+    """Accept a pasted dashboard link; room and other query data are not an API base."""
+    parsed = urllib.parse.urlsplit(value.strip())
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        stop("the server address must start with http:// or https://, for example https://team-contract.onrender.com")
+    return urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path.rstrip("/"), "", ""))
+
+
+def update_gitignore(target: Path) -> None:
+    """Keep personal files out of git. Only touches projects that use git."""
+    if not (target / ".git").exists():
+        return
+    path = target / ".gitignore"
+    existing = path.read_text().splitlines() if path.exists() else []
+    missing = [line for line in IGNORE_LINES if line not in existing]
+    if missing:
+        text = "\n".join(existing + missing) + "\n"
+        path.write_text(text)
+        print(f"  added {len(missing)} line(s) to .gitignore")
+
+
+def check_server(me: dict) -> None:
+    query = urllib.parse.urlencode({"room": me["room"]})
+    try:
+        with urlopen(f"{me['server']}/contract?{query}", timeout=30) as response:
+            count = len(json.load(response)["decisions"])
+        print(f"  server reached: room {me['room']} has {count} decision(s)")
+    except Exception as error:
+        print(f"  WARNING: could not reach {me['server']} ({type(error).__name__}).")
+        print("  The files are installed. Check the address, or start the server, then try a prompt.")
+        print("  A free hosted server sleeps when idle: open its address in a browser to wake it.")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Add the team contract tool to a project folder.")
+    parser.add_argument("project", nargs="?", default=".", help="the project folder (default: current folder)")
+    parser.add_argument("--name", help="your name, shown to teammates")
+    parser.add_argument("--room", help="the room code your team shares")
+    parser.add_argument("--server", help="the coordination server address")
+    parser.add_argument("--guided", action="store_true", help="configure GitHub and launch the workspace after installing")
+    args = parser.parse_args()
+
+    target = Path(args.project).expanduser().resolve()
+    if not target.is_dir():
+        stop(f"{target} is not a folder.")
+
+    print(f"Installing the team contract tool into {target}")
+    # Read every settings file and collect every answer before changing
+    # anything, so a broken file or a missing answer stops the install before
+    # a single file is written.
+    read_json(target / ".claude/settings.json")
+    read_json(target / ".mcp.json")
+    me = gather_me(target, args)
+
+    if target == SOURCE:
+        print("  this is the tool's own folder, so files and settings are already in place")
+    else:
+        copy_files(target)
+        add_hook(target)
+        add_tool(target)
+    write_json(target / "coord/me.json", me)
+    print(f"  wrote coord/me.json for {me['name']} in room {me['room']}")
+    update_gitignore(target)
+    check_server(me)
+
+    dashboard = me["server"] + "/?" + urllib.parse.urlencode({"room": me["room"]})
+    if args.guided:
+        print(f"\nTeam Contract is installed. Your room: {dashboard}")
+    else:
+        print(
+            f"\nTeam Contract is installed. Open your room: {dashboard}\n"
+            "  Everyday shortcut, in this folder: ./tc today   (./tc alone shows every action)\n"
+            "  Or just talk to Claude: \"what is the team doing?\", \"start a task for the login page\",\n"
+            "  \"share my work\", \"get the latest code\", \"tell the team the demo is at 3pm\".\n"
+            "  Next: open a new Claude Code session in your project folder.\n"
+            f"  Allow the '{TOOL_NAME}' tool when Claude Code asks.\n"
+            "  If Claude Code never asks, approve it in this file:\n"
+            f"       {target / '.claude/settings.local.json'}\n"
+            f'     with this content:  {{"enabledMcpjsonServers": ["{TOOL_NAME}"]}}\n'
+            "\nTo share the setup, commit coord/, .claude/settings.json and .mcp.json.\n"
+            "Each teammate runs the installer once in their own checkout."
+        )
+    if args.guided:
+        # Setup asks questions, so it needs a person at a terminal. When it cannot
+        # finish, say so and keep its exit code instead of printing a traceback.
+        done = subprocess.run([sys.executable, str(target / "coord/team.py"), "--action", "setup"], cwd=target)
+        if done.returncode:
+            sys.exit(f"Setup did not finish. Run it again with: ./tc setup")
+
+
+if __name__ == "__main__":
+    main()
